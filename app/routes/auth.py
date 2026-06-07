@@ -66,11 +66,12 @@ def login():
         user = User.query.filter_by(email=email).first()
 
         if user and check_password_hash(user.password_hash, password):
-            session.clear()
             if user.is_mfa_enabled:
                 session['mfa_user_id'] = user.id
                 session['mfa_pending'] = True
                 session['mfa_remember'] = remember
+                session.pop('failed_logins', None)
+                session.pop('login_blocked_until', None)
                 return redirect(url_for('auth.mfa_verify'))
 
             login_user(user, remember=remember)

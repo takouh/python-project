@@ -13,7 +13,7 @@
         <p>Log in to your account to manage your listings or find your next dream home.</p>
       </div>
 
-      <form id="login-form" method="post" class="auth-form" novalidate>
+      <form id="login-form" method="post" action="{{ url_for('auth.login') }}" class="auth-form" novalidate>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="field-group">
           <input id="email" name="email" type="email" placeholder=" " required autocomplete="email">
