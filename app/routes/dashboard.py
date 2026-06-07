@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template, redirect, url_for, jsonify, current_app, request, flash
 import json, hmac, hashlib
 import bleach, uuid
-from app import db
+from app import db, csrf
 from flask_login import login_required, current_user
-from app.models import Listing, CommissionPayment, IdempotencyKey, PaymentLog
+from app.models import User, Listing, CommissionPayment, IdempotencyKey, PaymentLog
 
 # Existing blueprint
 
@@ -11,7 +11,7 @@ dashboard_bp = Blueprint('dashboard', __name__)
 
 # --- Mobile Money webhook endpoint ---
 @dashboard_bp.route('/webhook/momo', methods=['POST'])
-@login_required
+@csrf.exempt
 def momo_webhook():
     """Handle MoMo webhook notifications securely.
     Expected JSON payload:
@@ -63,8 +63,13 @@ def momo_webhook():
     amount = payload.get('amount')
     reference_id = payload.get('reference_id')
     status = payload.get('status')
-    if not all([listing_id, amount, reference_id, status]):
+    payer_id = payload.get('user_id')
+    if not all([listing_id, amount, reference_id, status, payer_id]):
         return jsonify({'error': 'Missing required fields'}), 400
+
+    payer = User.query.get(payer_id)
+    if not payer:
+        return jsonify({'error': 'User not found'}), 404
 
     listing = Listing.query.get(listing_id)
     if not listing:
@@ -84,14 +89,14 @@ def momo_webhook():
 
     # Create payment record if not exists
     payment = CommissionPayment.query.filter_by(
-        user_id=current_user.id,
+        user_id=payer.id,
         landlord_id=listing.landlord_id,
         listing_id=listing.id,
         transaction_id=reference_id
     ).first()
     if not payment:
         payment = CommissionPayment(
-            user_id=current_user.id,
+            user_id=payer.id,
             landlord_id=listing.landlord_id,
             listing_id=listing.id,
             amount=amount,

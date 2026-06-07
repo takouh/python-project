@@ -55,8 +55,9 @@ def login():
             session.pop('login_blocked_until', None)
             session.pop('failed_logins', None)
 
-        email = bleach.clean(request.form.get('email', '').strip(), strip=True)
+        email = bleach.clean(request.form.get('email', '').strip().lower(), strip=True)
         password = request.form.get('password', '')
+        remember = bool(request.form.get('remember'))
 
         if not email or not password:
             flash('Please enter both email and password.', 'warning')
@@ -69,9 +70,10 @@ def login():
             if user.is_mfa_enabled:
                 session['mfa_user_id'] = user.id
                 session['mfa_pending'] = True
+                session['mfa_remember'] = remember
                 return redirect(url_for('auth.mfa_verify'))
 
-            login_user(user)
+            login_user(user, remember=remember)
             session.permanent = True
             session.pop('failed_logins', None)
             session.pop('login_blocked_until', None)
@@ -211,10 +213,11 @@ def mfa_verify():
         code = request.form.get('code', '').strip()
         totp = pyotp.TOTP(user.mfa_secret)
         if totp.verify(code):
-            login_user(user)
+            login_user(user, remember=session.get('mfa_remember', False))
             session.permanent = True
             session.pop('mfa_pending', None)
             session.pop('mfa_user_id', None)
+            session.pop('mfa_remember', None)
             flash('Logged in successfully.', 'success')
             if user.is_superadmin:
                 return redirect(url_for('admin.dashboard'))
