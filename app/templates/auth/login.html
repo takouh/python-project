@@ -16,8 +16,8 @@
       <form id="login-form" method="post" action="{{ url_for('auth.login') }}" class="auth-form" novalidate>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="field-group">
-          <input id="email" name="email" type="email" placeholder=" " required autocomplete="email">
-          <label for="email">Email address</label>
+          <input id="identifier" name="identifier" type="text" placeholder=" " required autocomplete="username">
+          <label for="identifier">Email address or phone number</label>
         </div>
 
         <div class="field-group field-group-password">

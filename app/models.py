@@ -9,7 +9,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    phone = db.Column(db.String(20), nullable=True)
+    phone = db.Column(db.String(20), unique=True, nullable=True)
     password_hash = db.Column(db.String(256), nullable=False)
     is_superadmin = db.Column(db.Boolean, default=False)
     is_landlord = db.Column(db.Boolean, default=False)

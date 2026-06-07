@@ -20,6 +20,15 @@ def is_valid_email(email: str) -> bool:
     return bool(EMAIL_REGEX.fullmatch(email))
 
 
+def normalize_phone(phone: str) -> str:
+    return re.sub(r'\D', '', phone or '')
+
+
+def is_valid_phone(phone: str) -> bool:
+    digits = normalize_phone(phone)
+    return len(digits) >= 8
+
+
 def is_strong_password(password: str) -> bool:
     return (
         len(password) >= 12
@@ -55,15 +64,19 @@ def login():
             session.pop('login_blocked_until', None)
             session.pop('failed_logins', None)
 
-        email = bleach.clean(request.form.get('email', '').strip().lower(), strip=True)
+        identifier = bleach.clean(request.form.get('identifier', '').strip(), strip=True)
         password = request.form.get('password', '')
         remember = bool(request.form.get('remember'))
 
-        if not email or not password:
-            flash('Please enter both email and password.', 'warning')
+        if not identifier or not password:
+            flash('Please enter both email/phone and password.', 'warning')
             return redirect(url_for('auth.login'))
 
-        user = User.query.filter_by(email=email).first()
+        if is_valid_email(identifier.lower()):
+            user = User.query.filter_by(email=identifier.lower()).first()
+        else:
+            phone = normalize_phone(identifier)
+            user = User.query.filter_by(phone=phone).first() if phone else None
 
         if user and check_password_hash(user.password_hash, password):
             if user.is_mfa_enabled:
@@ -136,8 +149,20 @@ def register():
             flash('Enter a valid name with at least 3 characters.', 'warning')
             return redirect(url_for('auth.register'))
 
-        if not email or not is_valid_email(email):
+        email = bleach.clean(request.form.get('email', '').strip().lower(), strip=True)
+        phone_raw = bleach.clean(request.form.get('phone', '').strip(), strip=True)
+        phone = normalize_phone(phone_raw) if phone_raw else None
+
+        if not email and not phone:
+            flash('Enter either a valid email address or phone number.', 'warning')
+            return redirect(url_for('auth.register'))
+
+        if email and not is_valid_email(email):
             flash('Enter a valid email address.', 'warning')
+            return redirect(url_for('auth.register'))
+
+        if phone and not is_valid_phone(phone_raw):
+            flash('Enter a valid phone number with at least 8 digits.', 'warning')
             return redirect(url_for('auth.register'))
 
         if password != confirm_password:
@@ -152,9 +177,16 @@ def register():
             flash('Select a valid account type.', 'warning')
             return redirect(url_for('auth.register'))
 
-        if User.query.filter_by(email=email).first():
+        if email and User.query.filter_by(email=email).first():
             flash('Email already registered.', 'warning')
             return redirect(url_for('auth.register'))
+
+        if phone and User.query.filter_by(phone=phone).first():
+            flash('Phone number already registered.', 'warning')
+            return redirect(url_for('auth.register'))
+
+        if not email:
+            email = f'{phone}@phone.local'
 
         new_user = User(
             name=name,
