@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="dashboard-hero">
+  <div class="hero-copy">
+    <span class="eyebrow">Landlord Hub</span>
+    <h1>Manage your rental portfolio</h1>
+    <p>Keep track of available homes, edit your listings, and see the full marketplace from one powerful dashboard.</p>
+    <a href="{{ url_for('landlord.create_listing') }}" class="button">Create new listing</a>
+  </div>
+  <div class="hero-summary">
+    <article class="summary-card">
+      <h3>Total listings</h3>
+      <strong>{{ listing_count }}</strong>
+      <p>Properties you currently manage.</p>
+    </article>
+    <article class="summary-card">
+      <h3>Available now</h3>
+      <strong>{{ active_count }}</strong>
+      <p>Listings currently open for rent.</p>
+    </article>
+    <article class="summary-card">
+      <h3>Marketplace</h3>
+      <strong>{{ all_listings|length }}</strong>
+      <p>Total published homes on the platform.</p>
+    </article>
+  </div>
+</section>
+
+<section class="listings">
+  <div class="section-heading">
+    <div>
+      <h2>Your active listings</h2>
+      <p>Quickly review your current properties and their availability status.</p>
+    </div>
+  </div>
+  {% if listings %}
+    <div class="listing-grid">
+      {% for listing in listings %}
+        <article class="listing-card">
+          <div class="listing-card-header">
+            <h2>{{ listing.title }}</h2>
+            <span class="status-pill {{ 'active' if listing.available else 'inactive' }}">{{ 'Available' if listing.available else 'Unavailable' }}</span>
+          </div>
+          <p class="listing-meta">{{ listing.city }} · {{ listing.address }}</p>
+          <div class="listing-details">
+            <span>CFA {{ listing.price }}</span>
+          </div>
+          <p class="listing-description">{{ listing.description or 'No description provided yet.' }}</p>
+          <div class="card-actions">
+            <a class="button button-secondary" href="{{ url_for('dashboard.listing_detail', listing_id=listing.id) }}">View</a>
+            {% if current_user.is_authenticated and current_user.id == listing.landlord_id %}
+              <form method="post" action="{{ url_for('landlord.delete_listing', listing_id=listing.id) }}" class="inline-form" onsubmit="return confirm('Delete this listing? This action cannot be undone.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="button button-danger">Delete</button>
+              </form>
+            {% endif %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No listings created yet. Start by adding your first property.</p>
+  {% endif %}
+</section>
+
+<section class="listings">
+  <div class="section-heading">
+    <div>
+      <h2>Marketplace overview</h2>
+      <p>See what renters can browse across all available homes in the system.</p>
+    </div>
+  </div>
+  {% if all_listings %}
+    <div class="listing-grid">
+      {% for listing in all_listings %}
+        <article class="listing-card">
+          <h2>{{ listing.title }}</h2>
+          <p class="listing-meta">{{ listing.city }} · {{ listing.address }}</p>
+          <div class="listing-details">
+            <span class="status-pill {{ 'active' if listing.available else 'inactive' }}">{{ 'Available' if listing.available else 'Unavailable' }}</span>
+            <strong>CFA {{ listing.price }}</strong>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No listings have been published yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

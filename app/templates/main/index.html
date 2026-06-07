@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="hero hero-hubs">
+  <div class="hero-copy">
+    <span class="eyebrow">Home hubs</span>
+    <h1>Rent smarter with a hub-based home search.</h1>
+    <p>Explore properties, landlord tools, and agent support from a single dashboard built around connected hubs.</p>
+
+    <form class="hero-search" method="get" id="hero-search-form">
+      <input type="search" name="q" id="home-search" placeholder="Search by city, neighborhood, or property" value="{{ query }}" aria-label="Search listings">
+      <button type="submit">Search homes</button>
+    </form>
+
+    <div class="hub-actions">
+      <a href="{{ url_for('main.index') }}" class="hub-pill active">Live Listings</a>
+      <a href="{{ url_for('auth.login') }}" class="hub-pill">Agent hub</a>
+      <a href="{{ url_for('auth.login') }}" class="hub-pill">Landlord hub</a>
+      <a href="{{ url_for('auth.login') }}" class="hub-pill">Tenant hub</a>
+    </div>
+  </div>
+
+  <div class="hero-hub-grid">
+    <article class="hub-card hub-primary">
+      <span class="hub-label">Rent Hub</span>
+      <h2>Find the right home in minutes</h2>
+      <p>Quick search, neighborhood stats, and available move-in ready rentals all in one place.</p>
+    </article>
+    <article class="hub-card">
+      <span class="hub-label">Agent Hub</span>
+      <h3>Manage leads with confidence</h3>
+      <p>Connect with landlords and renters, update listings, and stay on top of request activity.</p>
+    </article>
+    <article class="hub-card">
+      <span class="hub-label">Landlord Hub</span>
+      <h3>Publish and track your properties</h3>
+      <p>Create listings, approve tenants, and view performance metrics from one dashboard.</p>
+    </article>
+    <article class="hub-card">
+      <span class="hub-label">Support Hub</span>
+      <h3>Get answers fast</h3>
+      <p>Access FAQs, get help with onboarding, and learn best practices for renting or leasing.</p>
+    </article>
+  </div>
+</section>
+
+<section class="home-hubs">
+  <div class="section-heading">
+    <div>
+      <h2>Hub overview</h2>
+      <p>Jump to the experience you need — whether you're browsing rentals, managing properties, or working as an agent.</p>
+    </div>
+  </div>
+
+  <div class="hub-grid">
+    <article class="hub-card compact">
+      <h3>Collections</h3>
+      <p>Save favorites, compare homes, and revisit top properties with a single click.</p>
+    </article>
+    <article class="hub-card compact">
+      <h3>Neighborhoods</h3>
+      <p>Browse rentals by area and see the best communities for every lifestyle.</p>
+    </article>
+    <article class="hub-card compact">
+      <h3>Recent Listings</h3>
+      <p>Only fresh rentals appear here so you’re always reviewing current offers.</p>
+    </article>
+    <article class="hub-card compact">
+      <h3>Quick Actions</h3>
+      <p>Post a property, message an agent, or update your profile from one hub.</p>
+    </article>
+  </div>
+</section>
+
+<section class="home-listings">
+  <div class="section-heading">
+    <div>
+      <h2>Featured rental hubs</h2>
+      <p>Explore live listings organized as interactive cards for faster decision-making.</p>
+    </div>
+  </div>
+
+  {% if listings %}
+    <div class="listing-grid">
+      {% for listing in listings %}
+        <article class="listing-card" data-status="{{ 'available' if listing.available else 'unavailable' }}" data-listing="{{ listing.title }} {{ listing.city }} {{ listing.address }}">
+          <div class="listing-top">
+            <span class="listing-badge {{ 'available' if listing.available else 'unavailable' }}">{{ 'Available' if listing.available else 'Unavailable' }}</span>
+            <div class="listing-pill">Rental</div>
+          </div>
+          <h3>{{ listing.title }}</h3>
+          <p class="listing-meta">{{ listing.city }} · {{ listing.address }}</p>
+          <p class="listing-description">{{ listing.description[:90] }}{% if listing.description|length > 90 %}...{% endif %}</p>
+          <div class="listing-footer">
+            <strong>CFA {{ listing.price }}</strong>
+            <span>Listed {{ listing.created_at.strftime('%b %d') }}</span>
+          </div>
+          <div class="card-actions">
+            <a class="button button-secondary" href="{{ url_for('dashboard.listing_detail', listing_id=listing.id) }}">View</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <p>No available listings found.</p>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/home.js') }}"></script>
+{% endblock %}

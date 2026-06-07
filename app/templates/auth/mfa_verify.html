@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-grid" style="grid-template-columns: 1fr; max-width: 500px; margin: 0 auto;">
+    <div class="auth-panel">
+      <div class="brand-chip">
+        <span>Security</span>
+        <strong>Check</strong>
+      </div>
+
+      <div class="auth-intro">
+        <h1>Two-Factor Verification</h1>
+        <p>Your account is protected by multi-factor authentication. Please enter the 6-digit verification code from your authenticator app.</p>
+      </div>
+
+      <form id="mfa-verify-form" method="post" class="auth-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="field-group">
+          <input id="code" name="code" type="text" placeholder=" " required autocomplete="off" pattern="[0-9]*" inputmode="numeric" autofocus>
+          <label for="code">Verification Code</label>
+        </div>
+
+        <button type="submit" class="submit-button">
+          <span class="button-text">Verify & Log In</span>
+          <span class="button-loader" aria-hidden="true"></span>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p>Lost access? <a href="{{ url_for('auth.login') }}">Back to Sign In</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}

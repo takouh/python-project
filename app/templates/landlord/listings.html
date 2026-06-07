@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="landlord-panel">
+    <div class="landlord-header">
+      <div>
+        <h1>Your Property Listings</h1>
+        <p>Manage and add new properties from your landlord dashboard.</p>
+      </div>
+      <a class="button" href="{{ url_for('landlord.create_listing') }}">Create New Listing</a>
+    </div>
+
+    {% if listings %}
+      <div class="listing-grid">
+        {% for listing in listings %}
+          <article class="listing-card">
+            <div>
+              <h2>{{ listing.title }}</h2>
+              <p class="listing-meta">{{ listing.city }} · {{ listing.address }}</p>
+            </div>
+            <div class="listing-bottom">
+              <span class="status-pill {{ 'active' if listing.available else 'inactive' }}">{{ 'Active' if listing.available else 'Paused' }}</span>
+              <strong>CFA {{ listing.price }}</strong>
+            </div>
+            <div class="user-actions">
+              <a class="button button-secondary" href="{{ url_for('dashboard.listing_detail', listing_id=listing.id) }}">View details</a>
+              <form method="post" action="{{ url_for('landlord.delete_listing', listing_id=listing.id) }}" class="inline-form" onsubmit="return confirm('Delete this listing? This action cannot be undone.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="button button-danger">Delete</button>
+              </form>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>You have no listings yet. Use the button above to add your first property.</p>
+    {% endif %}
+  </section>
+{% endblock %}

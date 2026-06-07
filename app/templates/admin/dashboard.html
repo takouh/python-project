@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="admin-dashboard">
+  <div class="dashboard-header">
+    <div>
+      <p class="eyebrow">Admin Control Center</p>
+      <h1>Super Admin Hub</h1>
+      <p class="dashboard-lead">Publish new homes, manage accounts, and review every listing from the same workspace.</p>
+    </div>
+    <div class="dashboard-toolbar">
+      <input id="dashboard-search" type="search" placeholder="Search users or listings..." aria-label="Search dashboard">
+      <div class="toolbar-buttons">
+        <button class="pill active" data-panel="users">Users</button>
+        <button class="pill" data-panel="listings">Listings</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-kpis">
+    <article class="kpi-card">
+      <span>Total Users</span>
+      <strong id="kpi-total-users">{{ total_users }}</strong>
+    </article>
+    <article class="kpi-card">
+      <span>Active Listings</span>
+      <strong id="kpi-active-listings">{{ active_listings }}</strong>
+    </article>
+    <article class="kpi-card">
+      <span>Landlords</span>
+      <strong id="kpi-landlords">{{ landlords }}</strong>
+    </article>
+    <article class="kpi-card">
+      <span>Agents</span>
+      <strong id="kpi-agents">{{ agents }}</strong>
+    </article>
+    <article class="kpi-card">
+      <span>Tenants</span>
+      <strong id="kpi-tenants">{{ tenants }}</strong>
+    </article>
+  </div>
+
+  <div class="admin-control-panel">
+    <div class="admin-action-buttons">
+      <button class="pill active" type="button" data-admin-panel="publish">Publish property</button>
+      <button class="pill" type="button" data-admin-panel="create-user">Create user</button>
+      <button class="pill" type="button" data-admin-panel="view-users">View users</button>
+      <button class="pill" type="button" data-admin-panel="view-listings">View listings</button>
+    </div>
+  </div>
+
+  <div class="admin-action-panels">
+    <section class="panel admin-panel" data-admin-panel="publish">
+      <div class="panel-header">
+        <div>
+          <h2>Publish a new property</h2>
+          <p>Add a house to the marketplace and upload a tour video for users to view in the listing details screen.</p>
+        </div>
+      </div>
+      <form method="post" enctype="multipart/form-data" class="admin-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="form_type" value="listing">
+        <label class="form-field">
+          <span>Title</span>
+          <input type="text" name="title" placeholder="Cozy townhouse near the park" required>
+        </label>
+        <label class="form-field">
+          <span>Description</span>
+          <textarea name="description" rows="4" placeholder="Write a short description of the property" required></textarea>
+        </label>
+        <label class="form-field">
+          <span>Address</span>
+          <input type="text" name="address" placeholder="123 Main St" required>
+        </label>
+        <label class="form-field">
+          <span>City</span>
+          <input type="text" name="city" placeholder="City name" required>
+        </label>
+        <label class="form-field">
+          <span>Price</span>
+          <input type="number" step="0.01" name="price" placeholder="e.g. 1200.00" required>
+        </label>
+        <label class="form-field">
+          <span>Property Image</span>
+          <input type="file" name="image" accept="image/jpeg,image/png">
+        </label>
+        <label class="form-field">
+          <span>Video tour</span>
+          <input type="file" name="video" accept="video/mp4,video/webm,video/ogg,video/mov">
+        </label>
+        <button type="submit" class="submit-button">Publish listing</button>
+      </form>
+    </section>
+
+    <section class="panel admin-panel" data-admin-panel="create-user" style="display:none;">
+      <div class="panel-header">
+        <div>
+          <h2>Create new user</h2>
+          <p>Invite landlords, agents, or tenants directly from the admin hub.</p>
+        </div>
+      </div>
+      <form method="post" class="admin-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="form_type" value="user">
+        <label class="form-field">
+          <span>Name</span>
+          <input type="text" name="name" required placeholder="Enter full name">
+        </label>
+        <label class="form-field">
+          <span>Email address</span>
+          <input type="email" name="email" required placeholder="Enter email">
+        </label>
+        <label class="form-field">
+          <span>Phone number (optional)</span>
+          <input type="tel" name="phone" placeholder="Enter phone number">
+        </label>
+        <label class="form-field">
+          <span>Password</span>
+          <input type="password" name="password" required placeholder="Create password">
+        </label>
+        <label class="form-field select-field">
+          <span>Role</span>
+          <select name="role" required>
+            <option value="landlord">Landlord</option>
+            <option value="agent">Agent</option>
+            <option value="tenant">Tenant</option>
+          </select>
+        </label>
+        <button type="submit" class="submit-button">Create account</button>
+      </form>
+    </section>
+
+    <section class="panel admin-panel" data-admin-panel="view-users" style="display:none;">
+      <div class="panel-header">
+        <div>
+          <h2>Users</h2>
+          <p class="panel-note">{{ superadmins }} SuperAdmins · {{ landlords }} Landlords · {{ agents }} Agents · {{ tenants }} Tenants</p>
+        </div>
+        <span class="badge">{{ total_users }} total</span>
+      </div>
+      <ul id="user-list" class="interactive-list">
+        {% for user in users %}
+          <li data-type="{{ 'superadmin' if user.is_superadmin else 'landlord' if user.is_landlord else 'agent' if user.is_agent else 'tenant' }}">
+            <div>
+              <strong>{{ user.name or user.email }}</strong>
+              <small>{{ user.email }}</small>
+            </div>
+            <div class="user-actions">
+              <span class="status-pill {{ 'active' if user.is_landlord or user.is_agent else 'inactive' }}">{{ 'SuperAdmin' if user.is_superadmin else 'Landlord' if user.is_landlord else 'Agent' if user.is_agent else 'Tenant' }}</span>
+              {% if not user.is_superadmin and user.id != current_user.id %}
+                <form method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" class="inline-form">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="button button-secondary button-danger">Remove</button>
+                </form>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="panel admin-panel" data-admin-panel="view-listings" style="display:none;">
+      <div class="panel-header">
+        <div>
+          <h2>Listings</h2>
+          <p class="panel-note">{{ active_listings }} Active · {{ total_listings - active_listings }} Pending</p>
+        </div>
+        <span class="badge">{{ total_listings }} total</span>
+      </div>
+      <ul id="listing-list" class="interactive-list">
+        {% for listing in listings %}
+          <li data-status="{{ 'active' if listing.available else 'inactive' }}">
+            <div>
+              <strong>{{ listing.title }}</strong>
+              <small>{{ listing.city }} · {{ 'Active' if listing.available else 'Unavailable' }}</small>
+            </div>
+            <div class="user-actions">
+              <a class="button button-secondary" href="{{ url_for('dashboard.listing_detail', listing_id=listing.id) }}">View</a>
+              <form method="post" action="{{ url_for('admin.toggle_listing', listing_id=listing.id) }}" class="inline-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="button button-secondary button-danger">
+                  {{ 'Mark available' if not listing.available else 'Mark unavailable' }}
+                </button>
+              </form>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+</section>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

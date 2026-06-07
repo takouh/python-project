@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-grid" style="grid-template-columns: 1fr; max-width: 500px; margin: 0 auto;">
+    <div class="auth-panel">
+      <div class="brand-chip">
+        <span>Housing</span>
+        <strong>Platform</strong>
+      </div>
+
+      <div class="auth-intro">
+        <h1>Welcome back</h1>
+        <p>Log in to your account to manage your listings or find your next dream home.</p>
+      </div>
+
+      <form id="login-form" method="post" class="auth-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="field-group">
+          <input id="email" name="email" type="email" placeholder=" " required autocomplete="email">
+          <label for="email">Email address</label>
+        </div>
+
+        <div class="field-group field-group-password">
+          <input id="password" name="password" type="password" placeholder=" " required autocomplete="current-password">
+          <label for="password">Password</label>
+          <button type="button" class="password-toggle" aria-label="Show password">Show</button>
+        </div>
+
+        <div class="auth-actions-row">
+          <label class="checkbox-label">
+            <input type="checkbox" name="remember">
+            <span>Remember me</span>
+          </label>
+          <a href="#" class="link-muted">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="submit-button">
+          <span class="button-text">Sign in</span>
+          <span class="button-loader" aria-hidden="true"></span>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Create one</a></p>
+        <a class="link-muted" href="#">Privacy Policy</a>
+      </div>
+    </div>
+
+    <!-- Removed visual panel as per user request -->
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-grid">
+    <div class="auth-panel">
+      <div class="brand-chip">
+        <span>Housing</span>
+        <strong>Platform</strong>
+      </div>
+
+      <div class="auth-intro">
+        <h1>Create your account</h1>
+        <p>Register as a landlord, agent, or tenant to access your dashboard and see all listed homes.</p>
+      </div>
+
+      <form id="register-form" method="post" class="auth-form" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="field-group">
+          <input id="name" name="name" type="text" placeholder=" " required autocomplete="name">
+          <label for="name">Full name</label>
+        </div>
+
+        <div class="field-group">
+          <input id="email" name="email" type="email" placeholder=" " required autocomplete="email">
+          <label for="email">Email address</label>
+        </div>
+
+        <div class="field-group">
+          <input id="phone" name="phone" type="tel" placeholder=" " autocomplete="tel">
+          <label for="phone">Phone number (optional)</label>
+        </div>
+
+        <div class="field-group field-group-password">
+          <input id="password" name="password" type="password" placeholder=" " required autocomplete="new-password">
+          <label for="password">Password</label>
+          <button type="button" class="password-toggle" aria-label="Show password">Show</button>
+        </div>
+
+        <div class="field-group field-group-password">
+          <input id="confirm_password" name="confirm_password" type="password" placeholder=" " required autocomplete="new-password">
+          <label for="confirm_password">Confirm password</label>
+          <button type="button" class="password-toggle" aria-label="Show password">Show</button>
+        </div>
+
+        <div class="field-group">
+          <select id="role" name="role" required>
+            <option value="tenant">Tenant</option>
+            <option value="landlord">Landlord</option>
+            <option value="agent">Agent</option>
+          </select>
+          <label for="role">Account type</label>
+        </div>
+
+        <button type="submit" class="submit-button">
+          <span class="button-text">Create account</span>
+          <span class="button-loader" aria-hidden="true"></span>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p>Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+        <a class="link-muted" href="#">Need help?</a>
+      </div>
+    </div>
+
+    <div class="auth-visual">
+      <div class="hero-card">
+        <div class="hero-glow"></div>
+        <div class="hero-content">
+          <h2>Ready to grow</h2>
+          <p>One dashboard to connect landlords, renters, and management tools in a single, beautiful workspace.</p>
+          <div class="hero-metrics">
+            <div>
+              <strong>42%</strong>
+              <span>Faster onboarding</span>
+            </div>
+            <div>
+              <strong>30+</strong>
+              <span>Property templates</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}

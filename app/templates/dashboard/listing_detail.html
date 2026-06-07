@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="listing-detail-page">
+  <div class="detail-header">
+    <div>
+      <p class="eyebrow">Property detail</p>
+      <h1>{{ listing.title }}</h1>
+      <p class="detail-meta">{{ listing.city }} · {{ listing.address }}</p>
+    </div>
+    <div class="user-actions">
+      <a class="button button-secondary" href="{{ url_for('dashboard.dashboard_home') }}">Back to dashboard</a>
+      {% if current_user.is_authenticated and current_user.id == listing.landlord_id %}
+        <form method="post" action="{{ url_for('landlord.delete_listing', listing_id=listing.id) }}" class="inline-form" onsubmit="return confirm('Delete this listing? This action cannot be undone.');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="button button-danger">Delete listing</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="detail-grid">
+    <div class="detail-media">
+      {% if listing.video_filename %}
+        <video controls preload="metadata" class="property-video">
+          <source src="{{ url_for('static', filename='uploads/' ~ listing.video_filename) }}">
+          Your browser does not support embedded videos.
+        </video>
+      {% else %}
+        <div class="video-placeholder">
+          <p>No tour video uploaded for this listing yet.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="detail-sidebar">
+      <div class="detail-card">
+        <h2>Property overview</h2>
+        <p>{{ listing.description }}</p>
+      </div>
+
+      <div class="detail-card">
+        <h3>Quick facts</h3>
+        <ul>
+          <li><strong>Price:</strong> CFA {{ listing.price }}</li>
+          <li><strong>Status:</strong> {{ 'Available' if listing.available else 'Unavailable' }}</li>
+          <li><strong>City:</strong> {{ listing.city }}</li>
+          <li><strong>Address:</strong> {{ listing.address }}</li>
+          <li>
+            <strong>Owner:</strong> 
+            {% if has_paid %}
+              {{ listing.owner.name or listing.owner.email }}
+            {% else %}
+              <span class="locked-text"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Locked (Pay commission to view)</span>
+            {% endif %}
+          </li>
+        </ul>
+      </div>
+
+      <div class="detail-card landlord-info-card">
+        {% if has_paid %}
+          <h3>Landlord Information</h3>
+          <div class="landlord-details">
+            <p><strong>Name:</strong> {{ listing.owner.name or 'Not provided' }}</p>
+            <p><strong>Email:</strong> <a href="mailto:{{ listing.owner.email }}">{{ listing.owner.email }}</a></p>
+            <p><strong>Phone:</strong> {{ listing.owner.phone or 'Not provided' }}</p>
+            <p><strong>Member Since:</strong> {{ listing.owner.created_at.strftime('%B %Y') if listing.owner.created_at else 'N/A' }}</p>
+            <span class="badge badge-success" style="margin-top: 10px; display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; background: rgba(16, 185, 129, 0.1); color: #10B981; border-radius: 4px; font-size: 14px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              Commission Paid
+            </span>
+          </div>
+        {% else %}
+          <div class="mobile-payment-section">
+            <h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 5px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg> Unlock Landlord Contact</h3>
+            <p class="payment-desc">To view the direct contact information of the landlord for this property, a one-time commission fee of <strong>CFA 2,000</strong> is required.</p>
+            
+            <form action="{{ url_for('dashboard.pay_commission', listing_id=listing.id) }}" method="POST" class="payment-form">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              
+              <div class="form-group">
+                <label>Select Payment Provider</label>
+                <div class="payment-methods">
+                  <label class="payment-method-card">
+                    <input type="radio" name="payment_method" value="MTN Mobile Money" required>
+                    <span class="method-name">MTN MoMo</span>
+                  </label>
+                  <label class="payment-method-card">
+                    <input type="radio" name="payment_method" value="Orange Money" required>
+                    <span class="method-name">Orange Money</span>
+                  </label>
+                </div>
+              </div>
+              
+              <div class="form-group">
+                <label for="mobile_number">Mobile Number</label>
+                <input type="text" id="mobile_number" name="mobile_number" placeholder="e.g. +237 6XX XXX XXX" required class="form-control">
+              </div>
+              
+              <button type="submit" class="button button-primary pay-button" style="width: 100%; margin-top: 10px;">
+                Pay CFA 2,000 & Unlock Contact
+              </button>
+            </form>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="detail-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3 style="margin: 0;">Property map</h3>
+          <a href="https://www.google.com/maps/search/?api=1&query={{ listing.address|urlencode }}, {{ listing.city|urlencode }}" target="_blank" class="button button-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: 8px;">View on Google Maps</a>
+        </div>
+        <div
+          id="property-map"
+          class="property-map"
+          data-address="{{ listing.address|e }}"
+          data-city="{{ listing.city|e }}"
+          data-title="{{ listing.title|e }}"
+        >
+          <p class="map-loading">Loading map…</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+  {% if maps_api_key %}
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ maps_api_key }}&callback=initMap"></script>
+  {% else %}
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const mapContainer = document.getElementById('property-map');
+        if (mapContainer) {
+          mapContainer.innerHTML = '<p class="map-error">Google Maps API key is not configured.</p>';
+        }
+      });
+    </script>
+  {% endif %}
+{% endblock %}

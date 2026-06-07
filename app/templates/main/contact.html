@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="contact-panel">
+    <div class="contact-header">
+      <h1>Contact Support</h1>
+      <p>Send us a message and we will respond as soon as possible. All messages are validated and sanitized for security.</p>
+    </div>
+
+    <form method="post" class="contact-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="contact-field">
+        <label for="name">Full Name</label>
+        <input id="name" name="name" type="text" placeholder="Type your full name" required>
+      </div>
+
+      <div class="contact-field">
+        <label for="email">Email Address</label>
+        <input id="email" name="email" type="email" placeholder="Type your email address" required>
+      </div>
+
+      <div class="contact-field">
+        <label for="message">Message</label>
+        <textarea id="message" name="message" rows="6" placeholder="Type your message here" required></textarea>
+      </div>
+
+      <button type="submit" class="submit-button">Send Message</button>
+    </form>
+  </section>
+{% endblock %}

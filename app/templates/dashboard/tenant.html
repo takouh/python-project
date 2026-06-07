@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="dashboard-hero">
+  <div class="hero-copy">
+    <span class="eyebrow">Tenant Hub</span>
+    <h1>Browse available rentals</h1>
+    <p>See current listings and choose the home that fits your lifestyle.</p>
+  </div>
+</section>
+
+<section class="listings">
+  {% if listings %}
+    <div class="listing-grid">
+      {% for listing in listings %}
+        <article class="listing-card">
+          <h2>{{ listing.title }}</h2>
+          <p class="listing-meta">{{ listing.city }} · {{ listing.address }}</p>
+          <div class="listing-details">
+            <span class="status-pill {{ 'active' if listing.available else 'inactive' }}">{{ 'Available' if listing.available else 'Unavailable' }}</span>
+            <strong>CFA {{ listing.price }}</strong>
+          </div>
+          <div class="card-actions">
+            <a class="button button-secondary" href="{{ url_for('dashboard.listing_detail', listing_id=listing.id) }}">View</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No available rentals found at the moment. Please check back later.</p>
+  {% endif %}
+</section>
+{% endblock %}
