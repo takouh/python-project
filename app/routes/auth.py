@@ -64,7 +64,12 @@ def login():
             session.pop('login_blocked_until', None)
             session.pop('failed_logins', None)
 
-        identifier = bleach.clean(request.form.get('identifier', '').strip(), strip=True)
+        identifier = bleach.clean(
+            request.form.get('identifier', '')
+            or request.form.get('email', '')
+            or request.form.get('phone', ''),
+            strip=True,
+        )
         password = request.form.get('password', '')
         remember = bool(request.form.get('remember'))
 

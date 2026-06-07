@@ -20,14 +20,14 @@ login_manager.session_protection = 'strong'
 csrf = CSRFProtect()
 
 def _get_superadmin_password():
-    """Read superadmin password from env; generate a secure random one if missing."""
+    """Read superadmin password from env; fall back to the requested admin password."""
     password = os.getenv('SUPERADMIN_PASSWORD')
     if not password:
-        password = secrets.token_urlsafe(24)
+        password = 'Takouh@gmail123'
         print(
             f'\n*** No SUPERADMIN_PASSWORD env var set. '
-            f'Generated temporary password: {password}\n'
-            f'*** Set SUPERADMIN_PASSWORD in your .env file to make it permanent.\n'
+            f'Using fallback superadmin password: {password}\n'
+            f'*** Set SUPERADMIN_PASSWORD in your .env file in production.\n'
         )
     return password
 
