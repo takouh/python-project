@@ -1,5 +1,6 @@
 import os
 import secrets
+from dotenv import load_dotenv
 from flask import Flask, redirect, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -7,6 +8,8 @@ from flask_login import LoginManager
 from flask_wtf import CSRFProtect
 from sqlalchemy import text
 from werkzeug.security import generate_password_hash
+
+load_dotenv(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.env')))
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -125,8 +128,28 @@ def ensure_user_mfa_columns(app):
 def seed_default_superadmin(app):
     from app.models import User
     with app.app_context():
+        # Remove all other users and their dependent records so only the superadmin remains.
+        db.session.execute(text('DELETE FROM payment_logs'))
+        db.session.execute(text('DELETE FROM commission_payments'))
+        db.session.execute(text('DELETE FROM chat_messages'))
+        db.session.execute(text('DELETE FROM listings'))
+        db.session.execute(text('DELETE FROM contact_messages'))
+        db.session.execute(text('DELETE FROM idempotency_keys'))
+        db.session.execute(
+            text('DELETE FROM users WHERE email != :email'),
+            {'email': DEFAULT_SUPERADMIN['email']}
+        )
+        db.session.commit()
+
         existing = User.query.filter_by(email=DEFAULT_SUPERADMIN['email']).first()
         if existing:
+            existing.name = DEFAULT_SUPERADMIN['name']
+            existing.password_hash = generate_password_hash(DEFAULT_SUPERADMIN['password'])
+            existing.is_superadmin = True
+            existing.is_landlord = False
+            existing.is_agent = False
+            existing.phone = None
+            db.session.commit()
             return
 
         superadmin = User(
@@ -135,6 +158,7 @@ def seed_default_superadmin(app):
             password_hash=generate_password_hash(DEFAULT_SUPERADMIN['password']),
             is_superadmin=True,
             is_landlord=False,
+            is_agent=False,
         )
         db.session.add(superadmin)
         db.session.commit()
